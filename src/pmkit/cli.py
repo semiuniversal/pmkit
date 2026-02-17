@@ -11,6 +11,20 @@ def main():
     """PMKit: Product Management Toolkit wrapping OpenProject."""
     pass
 
+def get_compose_cmd():
+    """Detect the appropriate compose command."""
+    # Allow override
+    if os.getenv("PMKIT_COMPOSE_CMD"):
+        return os.getenv("PMKIT_COMPOSE_CMD").split()
+
+    import shutil
+    if shutil.which("podman-compose"):
+        return ["podman-compose"]
+    elif shutil.which("podman"):
+        return ["podman", "compose"]
+    else:
+        return ["docker", "compose"]
+
 @main.command()
 @click.option('--detach', '-d', is_flag=True, default=True, help="Run containers in the background")
 def up(detach):
@@ -46,7 +60,10 @@ def up(detach):
     os.makedirs(os.path.join(data_dir, "pgdata"), exist_ok=True)
     os.makedirs(os.path.join(data_dir, "assets"), exist_ok=True)
     
-    cmd = ["docker", "compose", "up"]
+    cmd_base = get_compose_cmd()
+    click.echo(f"Using compose command: {' '.join(cmd_base)}")
+    
+    cmd = cmd_base + ["up"]
     if detach:
         cmd.append("-d")
         
@@ -61,8 +78,10 @@ def up(detach):
 def down():
     """Stop the OpenProject stack."""
     click.echo("Stopping OpenProject stack...")
+    cmd_base = get_compose_cmd()
+    
     try:
-        subprocess.check_call(["docker", "compose", "down"])
+        subprocess.check_call(cmd_base + ["down"])
         click.echo("Stack stopped successfully.")
     except subprocess.CalledProcessError as e:
         click.echo(f"Error stopping stack: {e}", err=True)
@@ -71,8 +90,9 @@ def down():
 @main.command()
 def logs():
     """View logs from the stack."""
+    cmd_base = get_compose_cmd()
     try:
-        subprocess.check_call(["docker", "compose", "logs", "-f"])
+        subprocess.check_call(cmd_base + ["logs", "-f"])
     except subprocess.CalledProcessError as e:
         click.echo(f"Error viewing logs: {e}", err=True)
         exit(1)

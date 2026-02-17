@@ -1,6 +1,6 @@
 services:
   openproject:
-    image: openproject/openproject:17
+    image: docker.io/openproject/openproject:17
     container_name: pmkit-openproject
     restart: unless-stopped
     ports:
