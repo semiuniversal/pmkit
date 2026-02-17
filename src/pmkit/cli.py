@@ -79,5 +79,28 @@ def logs():
     except KeyboardInterrupt:
         pass
 
+@main.group()
+def excel():
+    """Excel import/export commands."""
+    pass
+
+@excel.command()
+@click.option('--project', '-p', prompt=True, help="Project identifier (e.g. 'demo-project')")
+@click.option('--output', '-o', default='work_packages.xlsx', help="Output file path")
+@click.option('--apikey', envvar='OPENPROJECT_API_KEY', prompt=True, hide_input=True, help="OpenProject API Key")
+def export(project, output, apikey):
+    """Export work packages to Excel."""
+    from .excel import export_work_packages
+    export_work_packages(output, project, apikey)
+
+@excel.command()
+@click.option('--project', '-p', prompt=True, help="Project identifier (e.g. 'demo-project')")
+@click.option('--input', '-i', default='work_packages.xlsx', help="Input file path")
+@click.option('--apikey', envvar='OPENPROJECT_API_KEY', prompt=True, hide_input=True, help="OpenProject API Key")
+def imports(project, input, apikey):
+    """Import work packages from Excel."""
+    from .excel import import_work_packages
+    import_work_packages(input, project, apikey)
+
 if __name__ == "__main__":
     main()
